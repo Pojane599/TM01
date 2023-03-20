@@ -1,0 +1,111 @@
+import Model.ResponseModel;
+import Network.ConectURI;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
+public class Tampilan extends JFrame {
+    private JPanel MainPanel;
+    private JButton submitButton;
+    private JTextField tFMessage;
+    private JTextField tFJumKata;
+    private JTextField tFStatus;
+    private JTextField tFComment;
+    private JButton closeButton;
+
+    public Tampilan() throws IOException {
+        setTitle("TM01_22090081_MuhammadFauzanDzika_2A");
+        setContentPane(MainPanel);
+        setVisible(true);
+        setSize(1280,720);
+        Network.ConectURI koneksisaya = new Network.ConectURI();
+        URL myAddress = ConectURI.buildURL
+                ("https://harber.mimoapps.xyz/api/getaccess.php");
+        String response = ConectURI.getResponseFromHttpUrl(myAddress);
+        System.out.println(response);
+        assert response != null;
+        JSONArray responseJSON = new JSONArray(response);
+        ArrayList<ResponseModel> responseModels = new ArrayList<>();
+        for (int i=0;1< responseJSON.length();i++){
+            ResponseModel resMOdel = new ResponseModel();
+            JSONObject myJSONObject = responseJSON.getJSONObject(1);
+            resMOdel.setMsg(myJSONObject.getString("Message"));
+            resMOdel.setStatus(myJSONObject.getString("Status"));
+            resMOdel.setComment(myJSONObject.getString("Comment"));
+            responseModels.add(resMOdel);
+        }
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == submitButton) {
+                    try {
+                        // AMBIL DATA
+                        URL url = new URL("https://harber.mimoapps.xyz/api/getaccess.php");
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestMethod("GET");
+
+                        // BACA DATA DARI JSON KE ARRAY
+                        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        String inputLine;
+                        StringBuffer response = new StringBuffer();
+                        while ((inputLine = in.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                        in.close();
+
+                        // PARSE JSON
+                        JSONArray jsonArray = new JSONArray(response.toString());
+
+                        // CONVERT JSON KE ARRAY
+                        ArrayList<ResponseModel> parsedList = new ArrayList<>();
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            ResponseModel resModel = new ResponseModel();
+                            JSONObject myJSONObject = jsonArray.getJSONObject(i);
+                            resModel.setMsg(myJSONObject.getString("message"));
+                            resModel.setStatus(myJSONObject.getString("status"));
+                            resModel.setComment(myJSONObject.getString("comment"));
+                            parsedList.add(resModel);
+
+                        }
+                        //MEMUNCULKAN KE TEXT AREA
+                        for (int index = 0; index < parsedList.size(); index++) {
+                            tFMessage.setText(parsedList.get(index).getMsg());
+                            tFStatus.setText(parsedList.get(index).getStatus());
+                            tFComment.setText(parsedList.get(index).getComment());
+                            tFJumKata.setText(String.valueOf(parsedList.get(index).getMsg().length()));
+                        }
+
+
+                    } catch (IOException ex) {
+                        System.out.println("Data tidak valid");
+
+                    } catch (JSONException ex) {
+                        System.out.println("Data tidak valid");
+                    }
+                }
+
+            }
+        });
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+
+            }
+        });
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        Tampilan MYFRAME = new Tampilan();
+    }
+}
